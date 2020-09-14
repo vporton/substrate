@@ -6668,7 +6668,6 @@ dependencies = [
  "sp-consensus-babe",
  "sp-core",
  "sp-inherents",
- "sp-keyring",
  "sp-runtime",
  "sp-timestamp",
  "sp-transaction-pool",
