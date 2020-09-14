@@ -28,9 +28,9 @@ use sp_consensus_babe::{BabeBlockWeight, BabeGenesisConfiguration};
 use sc_consensus_epochs::{EpochChangesFor, SharedEpochChanges, migration::EpochChangesForV0};
 use crate::{Epoch, migration::EpochV0};
 
-/// Aux key for epoch changes version
+/// Database key for epoch changes version (AUX column).
 pub const BABE_EPOCH_CHANGES_VERSION: &[u8] = b"babe_epoch_changes_version";
-/// Aux key for epoch changes
+/// Database key for epoch changes (AUX column).
 pub const BABE_EPOCH_CHANGES_KEY: &[u8] = b"babe_epoch_changes";
 /// hard coded epoch changes version
 pub const BABE_EPOCH_CHANGES_CURRENT_VERSION: u32 = 2;
