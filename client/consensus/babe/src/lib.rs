@@ -199,6 +199,7 @@ impl Epoch {
 	}
 }
 
+/// Errors encountered by the babe authorship task.
 #[derive(derive_more::Display, Debug)]
 pub enum Error<B: BlockT> {
 	/// Multiple BABE pre-runtime digests
