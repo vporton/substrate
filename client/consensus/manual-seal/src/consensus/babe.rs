@@ -198,6 +198,8 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 	) -> Result<(), Error> {
 		let slot_number = inherents.babe_inherent_data()?;
 		let epoch_changes = self.epoch_changes.lock();
+		println!("\n\n\nappended block import\n\n\n");
+
 		let mut epoch_descriptor = epoch_changes
 			.epoch_descriptor_for_child_of(
 				descendent_query(&*self.client),
@@ -207,6 +209,7 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 			)
 			.map_err(|e| Error::StringError(format!("failed to fetch epoch_descriptor: {}", e)))?
 			.ok_or_else(|| sp_consensus::Error::InvalidAuthoritiesSet)?;
+		println!("\n\n\nappended block import\n\n\n");
 
 		// a quick check to see if we're in the authorities
 		let epoch = self.epoch(parent, slot_number)?;
@@ -233,7 +236,7 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 						identifier,
 						EpochHeader {
 							start_slot: slot_number,
-							end_slot: slot_number + self.config.epoch_length,
+							end_slot: slot_number * self.config.epoch_length,
 						},
 					)
 				},
