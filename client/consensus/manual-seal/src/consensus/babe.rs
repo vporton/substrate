@@ -220,6 +220,8 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 					.is_some()
 			})
 			.is_some();
+		println!("\n\n\nappended block import {}\n\n\n", has_authority);
+
 
 		if !has_authority {
 			log::info!(target: "manual-seal", "authority not found");
