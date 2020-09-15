@@ -185,6 +185,8 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 			]
 		};
 
+		println!("\n\n\ncreated digest\n\n\n");
+
 		Ok(Digest { logs })
 	}
 
