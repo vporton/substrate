@@ -213,15 +213,9 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 
 		// a quick check to see if we're in the authorities
 		let epoch = self.epoch(parent, slot_number)?;
-		let has_authority = epoch.authorities
-			.iter()
-			.find(|(id, _)| {
-				self.authorities.iter()
-					.find(|(auth, _)| {
-						*id == *auth
-					})
-					.is_some()
-			})
+		let (authority, _) = self.authorities.first().expect("authorities is non-empty");
+		let has_authority = epoch.authorities.iter()
+			.find(|(id, _)| *id == *authority)
 			.is_some();
 		println!("\n\n\nappended block import {}\n\n\n", has_authority);
 
