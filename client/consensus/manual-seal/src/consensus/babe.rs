@@ -185,8 +185,6 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 			]
 		};
 
-		println!("\n\n\ncreated digest\n\n\n");
-
 		Ok(Digest { logs })
 	}
 
@@ -198,8 +196,6 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 	) -> Result<(), Error> {
 		let slot_number = inherents.babe_inherent_data()?;
 		let epoch_changes = self.epoch_changes.lock();
-		println!("\n\n\nappended block import\n\n\n");
-
 		let mut epoch_descriptor = epoch_changes
 			.epoch_descriptor_for_child_of(
 				descendent_query(&*self.client),
@@ -209,16 +205,14 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 			)
 			.map_err(|e| Error::StringError(format!("failed to fetch epoch_descriptor: {}", e)))?
 			.ok_or_else(|| sp_consensus::Error::InvalidAuthoritiesSet)?;
-		println!("\n\n\nappended block import\n\n\n");
-
+		// drop the lock
+		drop(epoch_changes);
 		// a quick check to see if we're in the authorities
 		let epoch = self.epoch(parent, slot_number)?;
-		let (authority, _) = self.authorities.first().expect("authorities is non-empty");
+		let (authority, _) = self.authorities.first().expect("authorities is non-emptyp; qed");
 		let has_authority = epoch.authorities.iter()
 			.find(|(id, _)| *id == *authority)
 			.is_some();
-		println!("\n\n\nappended block import {}\n\n\n", has_authority);
-
 
 		if !has_authority {
 			log::info!(target: "manual-seal", "authority not found");
@@ -237,9 +231,6 @@ impl<B, C> ConsensusDataProvider<B> for BabeConsensusDataProvider<B, C>
 				_ => unreachable!("we're not in the authorities, so this isn't the genesis epoch; qed")
 			};
 		}
-
-		println!("\n\n\nappended block import\n\n\n");
-
 
 		params.intermediates.insert(
 			Cow::from(INTERMEDIATE_KEY),
