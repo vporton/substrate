@@ -423,44 +423,10 @@ pub trait UselessCrypto {
 		true
 	}
 
-	/// Register a `ed25519` signature for batch verification.
-	///
-	/// Batch verification must be enabled by calling [`start_batch_verify`].
-	/// If batch verification is not enabled, the signature will be verified immediatley.
-	/// To get the result of the batch verification, [`finish_batch_verify`]
-	/// needs to be called.
-	///
-	/// Returns `true` when the verification is either successful or batched.
-	fn ed25519_batch_verify(
-		&mut self,
-		_sig: &ed25519::Signature,
-		_msg: &[u8],
-		_pub_key: &ed25519::Public,
-	) -> bool {
-		true
-	}
-
 	/// Verify `sr25519` signature.
 	///
 	/// Returns `true` when the verification was successful.
 	fn sr25519_verify(
-		_sig: &sr25519::Signature,
-		_msg: &[u8],
-		_pub_key: &sr25519::Public,
-	) -> bool {
-		true
-	}
-
-	/// Register a `sr25519` signature for batch verification.
-	///
-	/// Batch verification must be enabled by calling [`start_batch_verify`].
-	/// If batch verification is not enabled, the signature will be verified immediatley.
-	/// To get the result of the batch verification, [`finish_batch_verify`]
-	/// needs to be called.
-	///
-	/// Returns `true` when the verification is either successful or batched.
-	fn sr25519_batch_verify(
-		&mut self,
 		_sig: &sr25519::Signature,
 		_msg: &[u8],
 		_pub_key: &sr25519::Public,
@@ -476,33 +442,6 @@ pub trait UselessCrypto {
 		_msg: &[u8],
 		_pub_key: &ecdsa::Public,
 	) -> bool {
-		true
-	}
-
-	/// Register a `ecdsa` signature for batch verification.
-	///
-	/// Batch verification must be enabled by calling [`start_batch_verify`].
-	/// If batch verification is not enabled, the signature will be verified immediatley.
-	/// To get the result of the batch verification, [`finish_batch_verify`]
-	/// needs to be called.
-	///
-	/// Returns `true` when the verification is either successful or batched.
-	fn ecdsa_batch_verify(
-		&mut self,
-		_sig: &ecdsa::Signature,
-		_msg: &[u8],
-		_pub_key: &ecdsa::Public,
-	) -> bool {
-		true
-	}
-
-	/// Finish batch-verification of signatures.
-	///
-	/// Verify or wait for verification to finish for all signatures which were previously
-	/// deferred by `sr25519_verify`/`ed25519_verify`.
-	///
-	/// Will panic if no `VerificationExt` is registered (`start_batch_verify` was not called).
-	fn finish_batch_verify(&mut self) -> bool {
 		true
 	}
 }
@@ -559,9 +498,8 @@ pub trait Crypto {
 		msg: &[u8],
 		pub_key: &ed25519::Public,
 	) -> bool {
-		// println!("\n\n\n\ned25519_verify\n\n\n\n");
-
-		ed25519::Pair::verify(sig, msg, pub_key)
+		// ed25519::Pair::verify(sig, msg, pub_key)
+		true
 	}
 
 	/// Register a `ed25519` signature for batch verification.
