@@ -34,6 +34,7 @@ use sp_runtime::{
 use sp_state_machine::{ExecutionStrategy, ExecutionManager, DefaultHandler};
 use sp_externalities::Extensions;
 use parking_lot::RwLock;
+use sp_core::traits::{CryptoExtension, DefaultCryptoImpl, CryptoExt};
 
 /// Execution strategies settings.
 #[derive(Debug, Clone)]
@@ -89,6 +90,7 @@ pub struct ExecutionExtensions<Block: traits::Block> {
 	// That's also the reason why it's being registered lazily instead of
 	// during initialization.
 	transaction_pool: RwLock<Option<Weak<dyn sp_transaction_pool::OffchainSubmitTransaction<Block>>>>,
+	crypto_extension: RwLock<Arc<dyn CryptoExt>>,
 	extensions_factory: RwLock<Box<dyn ExtensionsFactory>>,
 }
 
@@ -97,6 +99,7 @@ impl<Block: traits::Block> Default for ExecutionExtensions<Block> {
 		Self {
 			strategies: Default::default(),
 			keystore: None,
+			crypto_extension: RwLock::new(Arc::new(DefaultCryptoImpl)),
 			transaction_pool: RwLock::new(None),
 			extensions_factory: RwLock::new(Box::new(())),
 		}
@@ -111,7 +114,13 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 	) -> Self {
 		let transaction_pool = RwLock::new(None);
 		let extensions_factory = Box::new(());
-		Self { strategies, keystore, extensions_factory: RwLock::new(extensions_factory), transaction_pool }
+		Self {
+			strategies,
+			keystore,
+			crypto_extension: RwLock::new(Arc::new(DefaultCryptoImpl)),
+			extensions_factory: RwLock::new(extensions_factory),
+			transaction_pool
+		}
 	}
 
 	/// Get a reference to the execution strategies.
@@ -122,6 +131,11 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 	/// Set the new extensions_factory
 	pub fn set_extensions_factory(&self, maker: Box<dyn ExtensionsFactory>) {
 		*self.extensions_factory.write() = maker;
+	}
+
+	/// Register another crypto extension
+	pub fn register_crypto_extension(&self, crypto_ext: Arc<dyn CryptoExt>) {
+		*self.crypto_extension.write() = crypto_ext
 	}
 
 	/// Register transaction pool extension.
@@ -159,6 +173,9 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 		let capabilities = context.capabilities();
 
 		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
+
+		let crypto = self.crypto_extension.read().clone();
+		extensions.register(CryptoExtension(crypto));
 
 		if capabilities.has(offchain::Capability::Keystore) {
 			if let Some(keystore) = self.keystore.as_ref() {

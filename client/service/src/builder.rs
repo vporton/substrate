@@ -52,7 +52,7 @@ use sc_telemetry::{telemetry, SUBSTRATE_INFO};
 use sp_transaction_pool::MaintainedTransactionPool;
 use prometheus_endpoint::Registry;
 use sc_client_db::{Backend, DatabaseSettings};
-use sp_core::traits::{CodeExecutor, SpawnNamed};
+use sp_core::traits::{CodeExecutor, SpawnNamed, CryptoExt};
 use sp_runtime::BuildStorage;
 use sc_client_api::{
 	BlockBackend, BlockchainEvents,
@@ -205,12 +205,13 @@ pub fn new_full_client<TBl, TRtApi, TExecDisp>(
 	TBl: BlockT,
 	TExecDisp: NativeExecutionDispatch + 'static,
 {
-	new_full_parts(config).map(|parts| parts.0)
+	new_full_parts(config, None).map(|parts| parts.0)
 }
 
 /// Create the initial parts of a full node.
 pub fn new_full_parts<TBl, TRtApi, TExecDisp>(
 	config: &Configuration,
+	crypto_ext: Option<Arc<dyn CryptoExt>>,
 ) -> Result<TFullParts<TBl, TRtApi, TExecDisp>,	Error> where
 	TBl: BlockT,
 	TExecDisp: NativeExecutionDispatch + 'static,
@@ -256,6 +257,10 @@ pub fn new_full_parts<TBl, TRtApi, TExecDisp>(
 			config.execution_strategies.clone(),
 			Some(keystore.clone()),
 		);
+
+		if let Some(crypto_ext) = crypto_ext {
+			extensions.register_crypto_extension(crypto_ext)
+		}
 
 		new_client(
 			db_config,

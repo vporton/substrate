@@ -62,7 +62,7 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 	)
 >, ServiceError> {
 	let (client, backend, keystore, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config)?;
+		sc_service::new_full_parts::<Block, RuntimeApi, Executor>(&config, None)?;
 	let client = Arc::new(client);
 
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
