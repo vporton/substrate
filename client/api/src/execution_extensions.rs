@@ -174,8 +174,7 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 
 		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
 
-		let crypto = self.crypto_extension.read().clone();
-		extensions.register(CryptoExtension(crypto));
+		extensions.register(CryptoExtension(self.crypto_extension.read().clone()));
 
 		if capabilities.has(offchain::Capability::Keystore) {
 			if let Some(keystore) = self.keystore.as_ref() {
