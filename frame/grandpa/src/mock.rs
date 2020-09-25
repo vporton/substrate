@@ -239,6 +239,7 @@ impl staking::Trait for Test {
 	type UnsignedPriority = StakingUnsignedPriority;
 	type MaxIterations = ();
 	type MinSolutionScoreBump = ();
+	type MaximumUnsignedWeight = ();
 	type WeightInfo = ();
 }
 

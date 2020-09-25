@@ -426,6 +426,7 @@ parameter_types! {
 	pub const MaxIterations: u32 = 10;
 	// 0.05%. The higher the value, the more strict solution acceptance becomes.
 	pub MinSolutionScoreBump: Perbill = Perbill::from_rational_approximation(5u32, 10_000);
+	pub MaximumUnsignedWeight: Weight = PerbilL::from_percent(90) * MaximumBlockWeight::get();
 }
 
 impl pallet_staking::Trait for Runtime {
