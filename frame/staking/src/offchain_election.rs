@@ -143,10 +143,7 @@ pub(crate) fn compute_offchain_election<T: Trait>() -> Result<(), OffchainElecti
 
 /// Find the maximum `len` that a compact can have in order to fit into the block weight.
 ///
-/// We start by assuming `voters == size.nominators`, i.e. all nominators are active in the
-/// solution. Then we do a binary search until we find the ideal value.
-///
-/// Thus, this only returns a value between zero and `size.nominators`.
+/// This only returns a value between zero and `size.nominators`.
 pub fn maximum_compact_len<W: crate::WeightInfo>(
 	winners_len: u32,
 	size: ElectionSize,
@@ -168,10 +165,11 @@ pub fn maximum_compact_len<W: crate::WeightInfo>(
 
 	let mut voters = size.nominators.max(2);
 	let mut step = voters;
-	loop {
+	while voters <= size.nominators.max(2) {
 		let current = weight_with(voters);
 		step = step / 2;
 		if step == 0 {
+			// Time to finish.
 			// We might have reduced less than expected due to rounding error. Reduce linearly one
 			// last time.
 			while weight_with(voters) > max_weight {
@@ -183,7 +181,7 @@ pub fn maximum_compact_len<W: crate::WeightInfo>(
 			}
 			// For the opposite case.
 			while weight_with(voters + 1) < max_weight {
-				if voters + 1 >= size.nominators {
+				if voters + 1 > size.nominators {
 					break
 				}
 				voters += 1;
@@ -193,6 +191,9 @@ pub fn maximum_compact_len<W: crate::WeightInfo>(
 		match current.cmp(&max_weight) {
 			Ordering::Less => {
 				voters += step;
+				if voters > size.nominators {
+					break;
+				}
 			}
 			Ordering::Greater => {
 				voters -= step;
@@ -203,6 +204,7 @@ pub fn maximum_compact_len<W: crate::WeightInfo>(
 		}
 	}
 
+	// defensive only. We will never exceed `size.nominators`.
 	voters.min(size.nominators)
 }
 
