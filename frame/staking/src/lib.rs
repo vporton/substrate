@@ -884,7 +884,7 @@ pub trait Trait: frame_system::Trait + SendTransactionTypes<Call<Self>> {
 	type UnsignedPriority: Get<TransactionPriority>;
 
 	/// Maximum weight that the unsigned transaction can have.
-	type MaximumUnsignedWeight: Get<Weight>;
+	type OffchainSolutionWeightLimit: Get<Weight>;
 
 	/// Weight information for extrinsics in this pallet.
 	type WeightInfo: WeightInfo;
