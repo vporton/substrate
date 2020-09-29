@@ -234,7 +234,7 @@ impl CryptoExt for DefaultCryptoImpl {}
 
 sp_externalities::decl_extension! {
 	/// The crypto extension to register/retrieve from the externalities.
-	pub struct CryptoExtension(Arc<dyn CryptoExt>);
+	pub struct CryptoExtension(Box<dyn CryptoExt>);
 }
 
 /// A pointer to the key store.
