@@ -232,6 +232,7 @@ pub fn maximum_compact_len<W: crate::WeightInfo>(
 		current_weight = weight_with(voters);
 	}
 
+	debug_assert!(weight_with(voters) <= max_weight);
 	voters.min(size.nominators)
 }
 
@@ -287,7 +288,7 @@ where
 				removed += 1
 			}
 
-			if removed > to_remove {
+			if removed >= to_remove {
 				break;
 			}
 		}
