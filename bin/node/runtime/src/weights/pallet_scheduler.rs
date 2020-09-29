@@ -15,7 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 2.0.0-rc6
+//! Weights for pallet_scheduler
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 2.0.0
+//! DATE: 2020-09-29, STEPS: [50], REPEAT: 20, LOW RANGE: [], HIGH RANGE: []
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -26,26 +28,26 @@ use sp_std::marker::PhantomData;
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Trait> pallet_scheduler::WeightInfo for WeightInfo<T> {
 	fn schedule(s: u32, ) -> Weight {
-		(37_835_000 as Weight)
-			.saturating_add((81_000 as Weight).saturating_mul(s as Weight))
+		(40_079_000 as Weight)
+			.saturating_add((80_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
 	fn cancel(s: u32, ) -> Weight {
-		(34_707_000 as Weight)
-			.saturating_add((3_125_000 as Weight).saturating_mul(s as Weight))
+		(36_377_000 as Weight)
+			.saturating_add((3_167_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(1 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn schedule_named(s: u32, ) -> Weight {
-		(48_065_000 as Weight)
-			.saturating_add((110_000 as Weight).saturating_mul(s as Weight))
+		(50_890_000 as Weight)
+			.saturating_add((117_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 	fn cancel_named(s: u32, ) -> Weight {
-		(38_776_000 as Weight)
-			.saturating_add((3_138_000 as Weight).saturating_mul(s as Weight))
+		(41_066_000 as Weight)
+			.saturating_add((3_183_000 as Weight).saturating_mul(s as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
