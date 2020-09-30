@@ -1239,8 +1239,6 @@ decl_error! {
 		OffchainElectionBogusScore,
 		/// The election size is invalid.
 		OffchainElectionBogusElectionSize,
-		/// The election weight is invalid.
-		OffchainElectionBogusElectionWeight,
 		/// The call is not allowed at the given time due to restrictions of election period.
 		CallNotAllowed,
 		/// Incorrect previous history depth input provided.
@@ -1303,6 +1301,7 @@ decl_module! {
 				consumed_weight += T::DbWeight::get().reads_writes(reads, writes);
 				consumed_weight += weight;
 			};
+
 			if
 				// if we don't have any ongoing offchain compute.
 				Self::era_election_status().is_closed() &&
@@ -2131,15 +2130,14 @@ decl_module! {
 		/// transaction in the block.
 		///
 		/// # <weight>
-		/// The weight of this call is not enforced by the system module and is enforced in this
-		/// module directly.
+		/// See [`submit_election_solution`].
 		/// # </weight>
-		#[weight = (T::WeightInfo::submit_solution_better(
+		#[weight = T::WeightInfo::submit_solution_better(
 			size.validators.into(),
 			size.nominators.into(),
 			compact.len() as u32,
 			winners.len() as u32,
-		), frame_support::weights::DispatchClass::Mandatory)]
+		)]
 		pub fn submit_election_solution_unsigned(
 			origin,
 			winners: Vec<ValidatorIndex>,
@@ -2149,13 +2147,6 @@ decl_module! {
 			size: ElectionSize,
 		) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
-			// The signed solution is `Normal` and the system module checks the weight. But for this
-			// mandatory one, we need to do it.
-			ensure!(
-				Self::check_unsigned_solution_weight(&winners, &compact, &size),
-				Error::<T>::OffchainElectionBogusElectionWeight.with_weight(0),
-			);
-
 			let adjustments = Self::check_and_replace_solution(
 				winners,
 				compact,
@@ -3347,11 +3338,11 @@ impl<T: Trait> frame_support::unsigned::ValidateUnsigned for Module<T> {
 	type Call = Call<T>;
 	fn validate_unsigned(source: TransactionSource, call: &Self::Call) -> TransactionValidity {
 		if let Call::submit_election_solution_unsigned(
-			winners,
-			compact,
+			_,
+			_,
 			score,
 			era,
-			size,
+			_,
 		) = call {
 			use offchain_election::DEFAULT_LONGEVITY;
 
@@ -3362,11 +3353,6 @@ impl<T: Trait> frame_support::unsigned::ValidateUnsigned for Module<T> {
 					log!(debug, "rejecting unsigned transaction because it is not local/in-block.");
 					return InvalidTransaction::Call.into();
 				}
-			}
-
-			// discard solution if it is too big.
-			if !Self::check_unsigned_solution_weight(winners, compact, size) {
-				return Err(InvalidTransaction::ExhaustsResources.into())
 			}
 
 			if let Err(error_with_post_info) = Self::pre_dispatch_checks(*score, *era) {
