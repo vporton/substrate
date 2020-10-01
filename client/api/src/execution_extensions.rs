@@ -138,6 +138,42 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 		*self.transaction_pool.write() = Some(Arc::downgrade(&pool) as _);
 	}
 
+	/// Based on the execution context and capabilities it produces
+	/// the extensions object to support desired set of APIs.
+	pub fn extensions(&self, at: &BlockId<Block>, context: ExecutionContext,) -> Extensions {
+		let capabilities = context.capabilities();
+
+		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
+
+		// alas! there's no CryptoExtension in the extension factory.
+		if extensions.get_mut(TypeId::of::<CryptoExtension>()).is_none() {
+			extensions.register(CryptoExtension(Box::new(DefaultCryptoImpl)));
+		}
+
+		if capabilities.has(offchain::Capability::Keystore) {
+			if let Some(keystore) = self.keystore.as_ref() {
+				extensions.register(KeystoreExt(keystore.clone()));
+			}
+		}
+
+		if capabilities.has(offchain::Capability::TransactionPool) {
+			if let Some(pool) = self.transaction_pool.read().as_ref().and_then(|x| x.upgrade()) {
+				extensions.register(TransactionPoolExt(Box::new(TransactionPoolAdapter {
+					at: *at,
+					pool,
+				}) as _));
+			}
+		}
+
+		if let ExecutionContext::OffchainCall(Some(ext)) = context {
+			extensions.register(
+				OffchainExt::new(offchain::LimitedExternalities::new(capabilities, ext.0))
+			);
+		}
+
+		extensions
+	}
+
 	/// Create `ExecutionManager` and `Extensions` for given offchain call.
 	///
 	/// Based on the execution context and capabilities it produces
@@ -163,37 +199,7 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 				self.strategies.other.get_manager(),
 		};
 
-		let capabilities = context.capabilities();
-
-		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
-
-		// alas! there's no CryptoExtension in the extension factory.
-		if let None = extensions.get_mut(TypeId::of::<CryptoExtension>()) {
-			extensions.register(CryptoExtension(Box::new(DefaultCryptoImpl)));
-		}
-
-		if capabilities.has(offchain::Capability::Keystore) {
-			if let Some(keystore) = self.keystore.as_ref() {
-				extensions.register(KeystoreExt(keystore.clone()));
-			}
-		}
-
-		if capabilities.has(offchain::Capability::TransactionPool) {
-			if let Some(pool) = self.transaction_pool.read().as_ref().and_then(|x| x.upgrade()) {
-				extensions.register(TransactionPoolExt(Box::new(TransactionPoolAdapter {
-					at: *at,
-					pool,
-				}) as _));
-			}
-		}
-
-		if let ExecutionContext::OffchainCall(Some(ext)) = context {
-			extensions.register(
-				OffchainExt::new(offchain::LimitedExternalities::new(capabilities, ext.0))
-			);
-		}
-
-		(manager, extensions)
+		(manager, self.extensions(at, context))
 	}
 }
 
