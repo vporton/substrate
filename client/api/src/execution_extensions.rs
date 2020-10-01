@@ -34,6 +34,8 @@ use sp_runtime::{
 use sp_state_machine::{ExecutionStrategy, ExecutionManager, DefaultHandler};
 use sp_externalities::Extensions;
 use parking_lot::RwLock;
+use sp_core::traits::{CryptoExtension, DefaultCryptoImpl};
+use std::any::TypeId;
 
 /// Execution strategies settings.
 #[derive(Debug, Clone)]
@@ -111,7 +113,12 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 	) -> Self {
 		let transaction_pool = RwLock::new(None);
 		let extensions_factory = Box::new(());
-		Self { strategies, keystore, extensions_factory: RwLock::new(extensions_factory), transaction_pool }
+		Self {
+			strategies,
+			keystore,
+			extensions_factory: RwLock::new(extensions_factory),
+			transaction_pool
+		}
 	}
 
 	/// Get a reference to the execution strategies.
@@ -159,6 +166,11 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 		let capabilities = context.capabilities();
 
 		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
+
+		// alas! there's no CryptoExtension in the extension factory.
+		if let None = extensions.get_mut(TypeId::of::<CryptoExtension>()) {
+			extensions.register(CryptoExtension(Box::new(DefaultCryptoImpl)));
+		}
 
 		if capabilities.has(offchain::Capability::Keystore) {
 			if let Some(keystore) = self.keystore.as_ref() {
