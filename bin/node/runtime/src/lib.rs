@@ -454,6 +454,7 @@ impl pallet_staking::Trait for Runtime {
 	type MinSolutionScoreBump = MinSolutionScoreBump;
 	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	type UnsignedPriority = StakingUnsignedPriority;
+	type OffchainSolutionWeightLimit = MaximumExtrinsicWeight;
 	type WeightInfo = ();
 }
 

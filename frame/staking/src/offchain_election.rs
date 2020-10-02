@@ -30,7 +30,6 @@ use sp_npos_elections::{
 };
 use sp_runtime::offchain::storage::StorageValueRef;
 use sp_runtime::{PerThing, RuntimeDebug, traits::{TrailingZeroInput, Zero}};
-use frame_support::traits::Get;
 use sp_std::{convert::TryInto, prelude::*};
 
 /// Error types related to the offchain election machinery.
