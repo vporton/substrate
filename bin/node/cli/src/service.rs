@@ -183,6 +183,9 @@ pub fn new_full_base(
 	} = new_partial(&config)?;
 
 	let (shared_voter_state, finality_proof_provider) = rpc_setup;
+	let (block_import, grandpa_link, babe_link) = import_setup;
+	let shared_authority_set = grandpa_link.shared_authority_set().clone();
+	let shared_epoch_changes = babe_link.epoch_changes().clone();
 
 	let (network, network_status_sinks, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -195,6 +198,9 @@ pub fn new_full_base(
 			block_announce_validator_builder: None,
 			finality_proof_request_builder: None,
 			finality_proof_provider: Some(finality_proof_provider.clone()),
+			sync_state_items: Some((
+				shared_authority_set.clone(), shared_epoch_changes.clone(),
+			))
 		})?;
 
 	if config.offchain_worker.enabled {
@@ -226,11 +232,7 @@ pub fn new_full_base(
 		system_rpc_tx,
 	})?;
 
-	let (block_import, grandpa_link, babe_link) = import_setup;
-
 	(with_startup_data)(&block_import, &babe_link);
-
-	let shared_epoch_changes = babe_link.epoch_changes().clone();
 
 	if let sc_service::config::Role::Authority { .. } = &role {
 		let proposer = sc_basic_authorship::ProposerFactory::new(
@@ -309,8 +311,6 @@ pub fn new_full_base(
 		keystore,
 		is_authority: role.is_network_authority(),
 	};
-
-	let shared_authority_set = grandpa_link.shared_authority_set().clone();
 
 	if enable_grandpa {
 		// start the full GRANDPA voter
@@ -421,6 +421,7 @@ pub fn new_light_base(config: Configuration) -> Result<(
 			block_announce_validator_builder: None,
 			finality_proof_request_builder: Some(finality_proof_request_builder),
 			finality_proof_provider: Some(finality_proof_provider),
+			sync_state_items: None,
 		})?;
 	network_starter.start_network();
 
