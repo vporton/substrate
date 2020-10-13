@@ -1322,6 +1322,7 @@ mod tests {
 	use sp_state_machine::BasicExternalities;
 	use sp_core::{
 		storage::Storage, map, traits::TaskExecutorExt, testing::TaskExecutor,
+		crypto::Pair,
 	};
 	use std::any::TypeId;
 

@@ -33,7 +33,7 @@ use sc_consensus_babe::{
 	register_babe_inherent_data_provider, INTERMEDIATE_KEY, find_pre_digest,
 };
 use sc_consensus_epochs::{SharedEpochChanges, descendent_query, ViableEpochDescriptor, EpochHeader};
-use sc_keystore::KeyStorePtr;
+use sp_keystore::SyncCryptoStorePtr;
 
 use sp_api::{ProvideRuntimeApi, TransactionFor};
 use sp_blockchain::{HeaderBackend, HeaderMetadata};
