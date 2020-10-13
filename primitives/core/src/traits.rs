@@ -17,6 +17,7 @@
 
 //! Shareable Substrate traits.
 
+use crate::{ed25519, sr25519, ecdsa, Pair};
 use std::{
 	borrow::Cow,
 	fmt::{Debug, Display},
@@ -24,6 +25,50 @@ use std::{
 };
 
 pub use sp_externalities::{Externalities, ExternalitiesExt};
+
+
+/// Something that generates, stores and provides access to keys.
+pub trait CryptoExt: Send + Sync {
+	/// Verify `sr25519` signature.
+	///
+	/// Returns `true` when the verification was successful.
+	fn sr25519_verify(&self, sig: &sr25519::Signature, msg: &[u8], pubkey: &sr25519::Public) -> bool {
+		sr25519::Pair::verify(sig, msg, pubkey)
+	}
+
+	/// Verify an `sr25519` signature.
+	///
+	/// Returns `true` when the verification in successful regardless of
+	/// signature version.
+	fn sr25519_verify_deprecated(&self, sig: &sr25519::Signature, msg: &[u8], pubkey: &sr25519::Public) -> bool {
+		sr25519::Pair::verify_deprecated(sig, msg, pubkey)
+	}
+
+	/// Verify `ed25519` signature.
+	///
+	/// Returns `true` when the verification was successful.
+	fn ed25519_verify(&self, sig: &ed25519::Signature, msg: &[u8], pubkey: &ed25519::Public) -> bool {
+		ed25519::Pair::verify(sig, msg, pubkey)
+	}
+
+	/// Verify `ecdsa` signature.
+	///
+	/// Returns `true` when the verification was successful.
+	fn ecdsa_verify(&self, sig: &ecdsa::Signature, msg: &[u8], pubkey: &ecdsa::Public) -> bool {
+		ecdsa::Pair::verify(sig, msg, pubkey)
+	}
+}
+
+/// Provides the default implementation of [`CryptoExt`]
+pub struct DefaultCryptoImpl;
+
+impl CryptoExt for DefaultCryptoImpl {}
+
+sp_externalities::decl_extension! {
+	/// The crypto extension to register/retrieve from the externalities.
+	pub struct CryptoExtension(Box<dyn CryptoExt>);
+}
+
 
 /// Code execution engine.
 pub trait CodeExecutor: Sized + Send + Sync + CallInWasm + Clone + 'static {

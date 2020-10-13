@@ -37,8 +37,7 @@ use tracing;
 
 #[cfg(feature = "std")]
 use sp_core::{
-	crypto::Pair,
-	traits::{CallInWasmExt, TaskExecutorExt},
+	traits::{CallInWasmExt, TaskExecutorExt, CryptoExtension},
 	offchain::{OffchainExt, TransactionPoolExt},
 	hexdisplay::HexDisplay,
 	storage::ChildInfo,
@@ -48,9 +47,7 @@ use sp_keystore::{KeystoreExt, SyncCryptoStore};
 
 use sp_core::{
 	OpaquePeerId, crypto::KeyTypeId, ed25519, sr25519, ecdsa, H256, LogLevel,
-	offchain::{
-		Timestamp, HttpRequestId, HttpRequestStatus, HttpError, StorageKind, OpaqueNetworkState,
-	},
+	offchain::{Timestamp, HttpRequestId, HttpRequestStatus, HttpError, StorageKind, OpaqueNetworkState},
 };
 
 #[cfg(feature = "std")]
@@ -459,11 +456,14 @@ pub trait Crypto {
 	///
 	/// Returns `true` when the verification was successful.
 	fn ed25519_verify(
+		&mut self,
 		sig: &ed25519::Signature,
 		msg: &[u8],
-		pub_key: &ed25519::Public,
+		pubkey: &ed25519::Public,
 	) -> bool {
-		ed25519::Pair::verify(sig, msg, pub_key)
+		self.extension::<CryptoExtension>()
+			.expect("No `Crypto` associated for the current context!")
+			.ed25519_verify(sig, msg, pubkey)
 	}
 
 	/// Register a `ed25519` signature for batch verification.
@@ -490,11 +490,14 @@ pub trait Crypto {
 	/// Returns `true` when the verification was successful.
 	#[version(2)]
 	fn sr25519_verify(
+		&mut self,
 		sig: &sr25519::Signature,
 		msg: &[u8],
-		pub_key: &sr25519::Public,
+		pubkey: &sr25519::Public,
 	) -> bool {
-		sr25519::Pair::verify(sig, msg, pub_key)
+		self.extension::<CryptoExtension>()
+			.expect("No `Crypto` associated for the current context!")
+			.sr25519_verify(sig, msg, pubkey)
 	}
 
 	/// Register a `sr25519` signature for batch verification.
@@ -586,8 +589,10 @@ pub trait Crypto {
 	///
 	/// Returns `true` when the verification in successful regardless of
 	/// signature version.
-	fn sr25519_verify(sig: &sr25519::Signature, msg: &[u8], pubkey: &sr25519::Public) -> bool {
-		sr25519::Pair::verify_deprecated(sig, msg, pubkey)
+	fn sr25519_verify(&mut self, sig: &sr25519::Signature, msg: &[u8], pubkey: &sr25519::Public) -> bool {
+		self.extension::<CryptoExtension>()
+			.expect("No `Crypto` associated for the current context!")
+			.sr25519_verify_deprecated(sig, msg, pubkey)
 	}
 
 	/// Returns all `ecdsa` public keys for the given key id from the keystore.
@@ -632,11 +637,14 @@ pub trait Crypto {
 	///
 	/// Returns `true` when the verification was successful.
 	fn ecdsa_verify(
+		&mut self,
 		sig: &ecdsa::Signature,
 		msg: &[u8],
-		pub_key: &ecdsa::Public,
+		pubkey: &ecdsa::Public,
 	) -> bool {
-		ecdsa::Pair::verify(sig, msg, pub_key)
+		self.extension::<CryptoExtension>()
+			.expect("No `Crypto` associated for the current context!")
+			.ecdsa_verify(sig, msg, pubkey)
 	}
 
 	/// Register a `ecdsa` signature for batch verification.

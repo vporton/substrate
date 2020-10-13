@@ -28,9 +28,12 @@ use sp_consensus_babe::{BabeBlockWeight, BabeGenesisConfiguration};
 use sc_consensus_epochs::{EpochChangesFor, SharedEpochChanges, migration::EpochChangesForV0};
 use crate::{Epoch, migration::EpochV0};
 
-const BABE_EPOCH_CHANGES_VERSION: &[u8] = b"babe_epoch_changes_version";
-const BABE_EPOCH_CHANGES_KEY: &[u8] = b"babe_epoch_changes";
-const BABE_EPOCH_CHANGES_CURRENT_VERSION: u32 = 2;
+/// Database key for epoch changes version (AUX column).
+pub const BABE_EPOCH_CHANGES_VERSION: &[u8] = b"babe_epoch_changes_version";
+/// Database key for epoch changes (AUX column).
+pub const BABE_EPOCH_CHANGES_KEY: &[u8] = b"babe_epoch_changes";
+/// hard coded epoch changes version
+pub const BABE_EPOCH_CHANGES_CURRENT_VERSION: u32 = 2;
 
 fn block_weight_key<H: Encode>(block_hash: H) -> Vec<u8> {
 	(b"block_weight", block_hash).encode()

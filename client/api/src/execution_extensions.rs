@@ -34,6 +34,8 @@ use sp_runtime::{
 use sp_state_machine::{ExecutionStrategy, ExecutionManager, DefaultHandler};
 use sp_externalities::Extensions;
 use parking_lot::RwLock;
+use sp_core::traits::{CryptoExtension, DefaultCryptoImpl};
+use std::any::TypeId;
 
 /// Execution strategies settings.
 #[derive(Debug, Clone)]
@@ -136,34 +138,17 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 		*self.transaction_pool.write() = Some(Arc::downgrade(&pool) as _);
 	}
 
-	/// Create `ExecutionManager` and `Extensions` for given offchain call.
-	///
 	/// Based on the execution context and capabilities it produces
-	/// the right manager and extensions object to support desired set of APIs.
-	pub fn manager_and_extensions<E: std::fmt::Debug, R: codec::Codec>(
-		&self,
-		at: &BlockId<Block>,
-		context: ExecutionContext,
-	) -> (
-		ExecutionManager<DefaultHandler<R, E>>,
-		Extensions,
-	) {
-		let manager = match context {
-			ExecutionContext::BlockConstruction =>
-				self.strategies.block_construction.get_manager(),
-			ExecutionContext::Syncing =>
-				self.strategies.syncing.get_manager(),
-			ExecutionContext::Importing =>
-				self.strategies.importing.get_manager(),
-			ExecutionContext::OffchainCall(Some((_, capabilities))) if capabilities.has_all() =>
-				self.strategies.offchain_worker.get_manager(),
-			ExecutionContext::OffchainCall(_) =>
-				self.strategies.other.get_manager(),
-		};
-
+	/// the extensions object to support desired set of APIs.
+	pub fn extensions(&self, at: &BlockId<Block>, context: ExecutionContext,) -> Extensions {
 		let capabilities = context.capabilities();
 
 		let mut extensions = self.extensions_factory.read().extensions_for(capabilities);
+
+		// alas! there's no CryptoExtension in the extension factory.
+		if extensions.get_mut(TypeId::of::<CryptoExtension>()).is_none() {
+			extensions.register(CryptoExtension(Box::new(DefaultCryptoImpl)));
+		}
 
 		if capabilities.has(offchain::Capability::Keystore) {
 			if let Some(ref keystore) = self.keystore {
@@ -190,7 +175,35 @@ impl<Block: traits::Block> ExecutionExtensions<Block> {
 			);
 		}
 
-		(manager, extensions)
+		extensions
+	}
+
+	/// Create `ExecutionManager` and `Extensions` for given offchain call.
+	///
+	/// Based on the execution context and capabilities it produces
+	/// the right manager and extensions object to support desired set of APIs.
+	pub fn manager_and_extensions<E: std::fmt::Debug, R: codec::Codec>(
+		&self,
+		at: &BlockId<Block>,
+		context: ExecutionContext,
+	) -> (
+		ExecutionManager<DefaultHandler<R, E>>,
+		Extensions,
+	) {
+		let manager = match context {
+			ExecutionContext::BlockConstruction =>
+				self.strategies.block_construction.get_manager(),
+			ExecutionContext::Syncing =>
+				self.strategies.syncing.get_manager(),
+			ExecutionContext::Importing =>
+				self.strategies.importing.get_manager(),
+			ExecutionContext::OffchainCall(Some((_, capabilities))) if capabilities.has_all() =>
+				self.strategies.offchain_worker.get_manager(),
+			ExecutionContext::OffchainCall(_) =>
+				self.strategies.other.get_manager(),
+		};
+
+		(manager, self.extensions(at, context))
 	}
 }
 
