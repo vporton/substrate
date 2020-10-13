@@ -53,7 +53,7 @@ use sp_timestamp::{InherentType, InherentError, INHERENT_IDENTIFIER, TimestampIn
 /// Intended for use with BABE runtimes.
 pub struct BabeConsensusDataProvider<B: BlockT, C> {
 	/// shared reference to keystore
-	keystore: KeyStorePtr,
+	keystore: SyncCryptoStorePtr,
 
 	/// Shared reference to the client.
 	client: Arc<C>,
@@ -76,7 +76,7 @@ impl<B, C> BabeConsensusDataProvider<B, C>
 {
 	pub fn new(
 		client: Arc<C>,
-		keystore: KeyStorePtr,
+		keystore: SyncCryptoStorePtr,
 		provider: &InherentDataProviders,
 		epoch_changes: SharedEpochChanges<B, Epoch>,
 		authorities: Vec<(AuthorityId, BabeAuthorityWeight)>,
