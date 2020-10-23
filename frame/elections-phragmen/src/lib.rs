@@ -975,8 +975,8 @@ impl<T: Trait> Module<T> {
 
 			// compute the outgoing of runners up as well and append them to the `to_burn_bond`
 			{
-				new_runners_up_ids.sort();
-				old_runners_up_ids.sort();
+				// new_runners_up_ids.sort();
+				// old_runners_up_ids.sort();
 				let (_, outgoing) = T::ChangeMembers::compute_members_diff(
 					&new_runners_up_ids,
 					&old_runners_up_ids,
