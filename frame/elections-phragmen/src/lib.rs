@@ -851,7 +851,7 @@ impl<T: Trait> Module<T> {
 	///
 	/// Reads: O(C + V*E) where C = candidates, V voters and E votes per voter exits.
 	/// Writes: O(M + R) with M desired members and R runners_up.
-	fn do_phragmen() {
+	pub fn do_phragmen() -> Vec<T::AccountId> {
 		let desired_seats = Self::desired_members() as usize;
 		let desired_runners_up = Self::desired_runners_up() as usize;
 		let num_to_elect = desired_runners_up + desired_seats;
@@ -868,7 +868,7 @@ impl<T: Trait> Module<T> {
 
 		if candidates.len().is_zero() {
 			Self::deposit_event(RawEvent::EmptyTerm);
-			return;
+			return vec![];
 		}
 
 		// helper closures to deal with balance/stake.
@@ -886,6 +886,7 @@ impl<T: Trait> Module<T> {
 			.map(|(voter, stake, votes)| { (voter, to_votes(stake), votes)} )
 			.collect::<Vec<_>>();
 
+		let mut slashed_outgoing = vec![];
 		let _ = sp_npos_elections::seq_phragmen::<T::AccountId, Perbill>(
 			num_to_elect,
 			candidates,
@@ -980,6 +981,7 @@ impl<T: Trait> Module<T> {
 					&new_runners_up_ids,
 					&old_runners_up_ids,
 				);
+				slashed_outgoing.extend(outgoing.clone());
 				to_burn_bond.extend(outgoing);
 			}
 
@@ -1015,6 +1017,8 @@ impl<T: Trait> Module<T> {
 			frame_support::debug::error!("elections-phragmen: failed to run election [{:?}].", e);
 			Self::deposit_event(RawEvent::ElectionError);
 		});
+
+		slashed_outgoing
 	}
 }
 
