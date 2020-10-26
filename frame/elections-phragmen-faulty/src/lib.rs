@@ -851,7 +851,7 @@ impl<T: Trait> Module<T> {
 	///
 	/// Reads: O(C + V*E) where C = candidates, V voters and E votes per voter exits.
 	/// Writes: O(M + R) with M desired members and R runners_up.
-	pub fn do_phragmen() -> Vec<T::AccountId> {
+	pub fn do_phragmen() -> Vec<(T::AccountId, BalanceOf<T>, BalanceOf<T>)> {
 		let desired_seats = Self::desired_members() as usize;
 		let desired_runners_up = Self::desired_runners_up() as usize;
 		let num_to_elect = desired_runners_up + desired_seats;
@@ -981,7 +981,6 @@ impl<T: Trait> Module<T> {
 					&new_runners_up_ids,
 					&old_runners_up_ids,
 				);
-				slashed_outgoing.extend(outgoing.clone());
 				to_burn_bond.extend(outgoing);
 			}
 
@@ -1000,7 +999,9 @@ impl<T: Trait> Module<T> {
 
 			// Burn outgoing bonds
 			to_burn_bond.into_iter().for_each(|x| {
-				let (imbalance, _) = T::Currency::slash_reserved(&x, T::CandidacyBond::get());
+				let (imbalance, _leftover) = T::Currency::slash_reserved(&x, T::CandidacyBond::get());
+				use frame_support::traits::Imbalance;
+				slashed_outgoing.push((x.clone(), imbalance.peek(), _leftover));
 				T::LoserCandidate::on_unbalanced(imbalance);
 			});
 

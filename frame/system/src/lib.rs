@@ -356,7 +356,7 @@ fn hash69<T: AsMut<[u8]> + Default>() -> T {
 type EventIndex = u32;
 
 /// Type used to encode the number of references an account has.
-pub type RefCount = u32;
+pub type RefCount = u8;
 
 /// Information of an account.
 #[derive(Clone, Eq, PartialEq, Default, RuntimeDebug, Encode, Decode)]
