@@ -975,8 +975,6 @@ impl<T: Trait> Module<T> {
 
 			// compute the outgoing of runners up as well and append them to the `to_burn_bond`
 			{
-				// new_runners_up_ids.sort();
-				// old_runners_up_ids.sort();
 				let (_, outgoing) = T::ChangeMembers::compute_members_diff(
 					&new_runners_up_ids,
 					&old_runners_up_ids,
@@ -984,6 +982,7 @@ impl<T: Trait> Module<T> {
 				to_burn_bond.extend(outgoing);
 			}
 
+			use frame_support::traits::Imbalance;
 			// Burn loser bond. members list is sorted. O(NLogM) (N candidates, M members)
 			// runner up list is not sorted. O(K*N) given K runner ups. Overall: O(NLogM + N*K)
 			// both the member and runner counts are bounded.
@@ -993,6 +992,7 @@ impl<T: Trait> Module<T> {
 					&& !new_runners_up_ids.contains(&c)
 				{
 					let (imbalance, _) = T::Currency::slash_reserved(&c, T::CandidacyBond::get());
+					println!("Slashing Candidate {:?} => {:?}", c, imbalance.peek());
 					T::LoserCandidate::on_unbalanced(imbalance);
 				}
 			});
@@ -1000,7 +1000,8 @@ impl<T: Trait> Module<T> {
 			// Burn outgoing bonds
 			to_burn_bond.into_iter().for_each(|x| {
 				let (imbalance, _leftover) = T::Currency::slash_reserved(&x, T::CandidacyBond::get());
-				use frame_support::traits::Imbalance;
+
+				println!("Slashing Outgoing {:?} => {:?}", x, imbalance.peek());
 				slashed_outgoing.push((x.clone(), imbalance.peek(), _leftover));
 				T::LoserCandidate::on_unbalanced(imbalance);
 			});
