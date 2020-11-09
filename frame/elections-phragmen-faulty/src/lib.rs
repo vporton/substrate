@@ -896,7 +896,7 @@ impl<T: Trait> Module<T> {
 			let old_members_ids = <Members<T>>::take().into_iter()
 				.map(|(m, _)| m)
 				.collect::<Vec<T::AccountId>>();
-			let mut old_runners_up_ids = <RunnersUp<T>>::take().into_iter()
+			let old_runners_up_ids = <RunnersUp<T>>::take().into_iter()
 				.map(|(r, _)| r)
 				.collect::<Vec<T::AccountId>>();
 
@@ -953,7 +953,7 @@ impl<T: Trait> Module<T> {
 				.rev()
 				.collect::<Vec<(T::AccountId, BalanceOf<T>)>>();
 			// new_runners_up remains sorted by desirability.
-			let mut new_runners_up_ids = new_runners_up
+			let new_runners_up_ids = new_runners_up
 				.iter()
 				.map(|(r, _)| r.clone())
 				.collect::<Vec<T::AccountId>>();
@@ -992,7 +992,7 @@ impl<T: Trait> Module<T> {
 					&& !new_runners_up_ids.contains(&c)
 				{
 					let (imbalance, _) = T::Currency::slash_reserved(&c, T::CandidacyBond::get());
-					println!("Slashing Candidate {:?} => {:?}", c, imbalance.peek());
+					println!("😱 Slashing Candidate {:?} => {:?}", c, imbalance.peek());
 					T::LoserCandidate::on_unbalanced(imbalance);
 				}
 			});
@@ -1001,7 +1001,7 @@ impl<T: Trait> Module<T> {
 			to_burn_bond.into_iter().for_each(|x| {
 				let (imbalance, _leftover) = T::Currency::slash_reserved(&x, T::CandidacyBond::get());
 
-				println!("Slashing Outgoing {:?} => {:?}", x, imbalance.peek());
+				println!("😱 Slashing Outgoing {:?} => {:?}", x, imbalance.peek());
 				slashed_outgoing.push((x.clone(), imbalance.peek(), _leftover));
 				T::LoserCandidate::on_unbalanced(imbalance);
 			});
